@@ -3,17 +3,15 @@ using System.Text.RegularExpressions;
 
 namespace Cozinhe_Comigo_API.Models {
     // Essa área será implementada em Python com FastAPI pelo Wallace
-    public class Users
+    public class User
     {
-        public int Id { get; set; }
+        public int id { get; set; }
         public string Name { get; set; }
-        public string Email { get; set; }
+        public string email { get; set; }
         public DateTime CreatedAt { get; set; }
-        public string? ProfilePictureUrl { get; set; }
-        public string? Bio { get; set; }
-        public List<int> FavoriteRecipesIds { get; set; } = new List<int>();
-
-        public List<PreferencesEnum> Preferences { get; set; } = new List<PreferencesEnum>();
+        public string? ProfirePictureUrl { get; set; }
+        public string? Biography { get; set; }
+        public List<int> FavoriteRecipesID { get; set; } = new List<int>();
 
         // Receitas são linkadas pelo UserId na classe Recipe
         // Avaliações são linkadas pelo UserId na classe Avaliation
@@ -25,10 +23,10 @@ namespace Cozinhe_Comigo_API.Models {
         // Poderia ser implemenado um token para manter a sessão do usuário
 
 
-        public Users(string name, string email)
+        public User(string name, string email)
         {
             Name = name;
-            Email = email;
+            this.email = email;
             CreatedAt = DateTime.Now;
         }
 

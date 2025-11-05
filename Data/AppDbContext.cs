@@ -18,5 +18,7 @@ namespace Cozinhe_Comigo_API.Data {
         }
 
         public DbSet<Recipe> Recipes { get; set; }
+        public DbSet<User> User { get; set; }
+
     }
 }

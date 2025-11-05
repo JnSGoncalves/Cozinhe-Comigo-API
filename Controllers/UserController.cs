@@ -1,73 +1,75 @@
 using Microsoft.AspNetCore.Mvc;
 using Cozinhe_Comigo_API.Models;
+using Cozinhe_Comigo_API.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cozinhe_Comigo_API.Controllers
 {
     [Route("CozinheComigoAPI/[controller]")]
-
-    // diz que essa classe vai ser usada para controlar requisições HTTP (GET, POST, PUT, DELETE)
     [ApiController]
     public class UserController : ControllerBase
     {
-       
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
+        private readonly AppDbContext _context;
+
+        public UserController(AppDbContext context)
         {
-            //TODO: implementar lógica para busca de todos os usuários no banco de dados.
-            var users = new List<Users>
-            {
-                new Users("Wallace", "wallace@gmail.com"),
-                new Users("Jonatas" , "Jonatas@gmail.com"),
-            };
+            _context = context;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        {
+            var users = await _context.User.ToListAsync();
             return Ok(users);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<Users>>> GetUser(long id)
+        public async Task<ActionResult<User>> GetUser(long id)
         {
-
-            // TODO: implementar lógica de busca por ID no banco de dados.
-            var user = new Users("Wallace", "Wallaceizidoro.1@gmail.com");
-
+            var user = await _context.User.FindAsync(id);
+            if (user == null)
+                return NotFound();
             return Ok(user);
         }
 
         [HttpPost]
-        public ActionResult<Users> InsertUser([FromBody] Users user)
+        public async Task<ActionResult<User>> InsertUser([FromBody] User user)
         {
-            if (!user.validateEmail(user.Email))
-            {
+            if (!user.validateEmail(user.email))
                 return ValidationProblem("E-mail inválido.");
-            }
 
             if (!user.validateName(user.Name))
-            {
-                return ValidationProblem("O Nome deve ter no mínimo 2 caracteres.");
-            }
+                return ValidationProblem("O nome deve ter no mínimo 2 caracteres.");
 
-            // TODO: Implementar lógica para salvar no banco de dados.
+            _context.User.Add(user);
+            await _context.SaveChangesAsync();
 
-            return Ok(user.Name + " Add to data base.");
+            return CreatedAtAction(nameof(GetUser), new { id = user.id }, user);
         }
 
         [HttpPut("{id}")]
-        public ActionResult<Users> UpdateUser(long id, [FromBody] Users user)
+        public async Task<ActionResult> UpdateUser(long id, [FromBody] User user)
         {
-            if (id != user.Id)
-            {
+            if (id != user.id)
                 return BadRequest();
-            }
 
-            //TODO: implementar lógica do banco de dados.
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
             return Ok(user);
         }
 
         [HttpDelete("{id}")]
-        public ActionResult<Users> DeleteUser(long id)
+        public async Task<ActionResult> DeleteUser(long id)
         {
-            //TODO: Implementar lógica do banco de dados.
+            var user = await _context.User.FindAsync(id);
+            if (user == null)
+                return NotFound();
+
+            _context.User.Remove(user);
+            await _context.SaveChangesAsync();
+
             return NoContent();
         }
-
     }
 }
