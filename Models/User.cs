@@ -1,7 +1,9 @@
 using System.Runtime;
 using System.Text.RegularExpressions;
 
-namespace Cozinhe_Comigo_API.Models {
+//todo: colocar senha no database e classe
+namespace Cozinhe_Comigo_API.Models
+{
     // Essa área será implementada em Python com FastAPI pelo Wallace
     public class User
     {
