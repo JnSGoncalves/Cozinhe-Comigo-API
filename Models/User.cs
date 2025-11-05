@@ -12,7 +12,7 @@ namespace Cozinhe_Comigo_API.Models
         public DateTime CreatedAt { get; set; }
         public string? ProfirePictureUrl { get; set; }
         public string? Biography { get; set; }
-        public List<int> FavoriteRecipesID { get; set; } = new List<int>();
+        public string? FavoriteRecipesID { get; set; }
         public string passWord { get; set; }
 
         // Receitas são linkadas pelo UserId na classe Recipe

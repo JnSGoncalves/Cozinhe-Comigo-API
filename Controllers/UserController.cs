@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Cozinhe_Comigo_API.Models;
 using Cozinhe_Comigo_API.Data;
+using Cozinhe_Comigo_API.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -54,6 +55,34 @@ namespace Cozinhe_Comigo_API.Controllers
 
             return CreatedAtAction(nameof(GetUser), new { id = user.id }, user);
         }
+
+        [HttpPost("login")]
+        public async Task<ActionResult> Login([FromBody] LoginRequest login)
+        {
+            if (string.IsNullOrEmpty(login.Email) || string.IsNullOrEmpty(login.PassWord))
+            {
+                return BadRequest("E-mail e senha são obrigatórios.");
+            }
+
+            var user = await _context.User.FirstOrDefaultAsync(u => u.email == login.Email);
+
+            if (user == null)
+            {
+                return Unauthorized("Usuário não encontrado.");
+            }
+
+            if (user.passWord != login.PassWord)
+            {
+                return Unauthorized("Seu email ou sua senha está incorreta.");
+            }
+
+            return Ok(new
+            {
+                message = "Login efetuado com sucesso!",
+                user = new { user.id, user.Name, user.email }
+            });
+        }
+
 
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateUser(long id, [FromBody] User user)
