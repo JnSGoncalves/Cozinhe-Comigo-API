@@ -1,7 +1,6 @@
 using System.Runtime;
 using System.Text.RegularExpressions;
 
-//todo: colocar senha no database e classe
 namespace Cozinhe_Comigo_API.Models
 {
     // Essa área será implementada em Python com FastAPI pelo Wallace
@@ -14,6 +13,7 @@ namespace Cozinhe_Comigo_API.Models
         public string? ProfirePictureUrl { get; set; }
         public string? Biography { get; set; }
         public List<int> FavoriteRecipesID { get; set; } = new List<int>();
+        public string passWord { get; set; }
 
         // Receitas são linkadas pelo UserId na classe Recipe
         // Avaliações são linkadas pelo UserId na classe Avaliation
@@ -51,6 +51,16 @@ namespace Cozinhe_Comigo_API.Models
             {
                 return false;
             }
+            return true;
+        }
+
+        public bool validatePassWord(string passWord)
+        {
+            if (passWord.Length <= 5)
+            {
+                return false;
+            }
+
             return true;
         }
 

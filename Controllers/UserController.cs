@@ -3,6 +3,8 @@ using Cozinhe_Comigo_API.Models;
 using Cozinhe_Comigo_API.Data;
 using Microsoft.EntityFrameworkCore;
 
+
+//todo: Implementar melhor resposta para confirmação de cadastro!
 namespace Cozinhe_Comigo_API.Controllers
 {
     [Route("CozinheComigoAPI/[controller]")]
@@ -40,6 +42,12 @@ namespace Cozinhe_Comigo_API.Controllers
 
             if (!user.validateName(user.Name))
                 return ValidationProblem("O nome deve ter no mínimo 2 caracteres.");
+
+            if (!user.validatePassWord(user.passWord))
+            {
+                return ValidationProblem("A senha deve ter 6 ou mais caracteres!");
+            }
+
 
             _context.User.Add(user);
             await _context.SaveChangesAsync();
