@@ -19,13 +19,6 @@ namespace Cozinhe_Comigo_API.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        {
-            var users = await _context.User.ToListAsync();
-            return Ok(users);
-        }
-
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(long id)
         {
@@ -53,7 +46,17 @@ namespace Cozinhe_Comigo_API.Controllers
             _context.User.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.id }, user);
+            return CreatedAtAction(nameof(GetUser), new { id = user.id }, new
+            {
+                user.id,
+                user.Name,
+                user.email,
+                user.CreatedAt,
+                user.ProfirePictureUrl,
+                user.Biography,
+                user.FavoriteRecipesID
+            });
+
         }
 
         [HttpPost("login")]
@@ -73,7 +76,10 @@ namespace Cozinhe_Comigo_API.Controllers
 
             if (user.passWord != login.PassWord)
             {
-                return Unauthorized("Seu email ou sua senha está incorreta.");
+                return Unauthorized(new
+                {
+                     message = "Seu email ou sua senha está incorreta." 
+                });
             }
 
             return Ok(new

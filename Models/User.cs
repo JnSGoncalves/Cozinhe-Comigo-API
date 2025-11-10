@@ -9,7 +9,8 @@ namespace Cozinhe_Comigo_API.Models
         public int id { get; set; }
         public string Name { get; set; }
         public string email { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public string? ProfirePictureUrl { get; set; }
         public string? Biography { get; set; }
         public string? FavoriteRecipesID { get; set; }
@@ -29,7 +30,8 @@ namespace Cozinhe_Comigo_API.Models
         {
             Name = name;
             this.email = email;
-            CreatedAt = DateTime.Now;
+            CreatedAt = DateTime.UtcNow;
+
         }
 
 
