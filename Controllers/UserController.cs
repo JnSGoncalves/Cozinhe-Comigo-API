@@ -5,9 +5,6 @@ using Cozinhe_Comigo_API.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
-
-//TODO: Implementar melhor resposta para confirmação de cadastro.
-//TODO: implementar hash para melhor tratamento da senha.
 namespace Cozinhe_Comigo_API.Controllers
 {
     [Route("CozinheComigoAPI/[controller]")]
