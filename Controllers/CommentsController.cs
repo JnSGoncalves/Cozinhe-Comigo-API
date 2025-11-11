@@ -3,7 +3,7 @@ using Receitas.Models;
 
 namespace Receitas.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("CozinheComigoAPI/[controller]")]
     [ApiController]
     public class CommentsController : ControllerBase
     {

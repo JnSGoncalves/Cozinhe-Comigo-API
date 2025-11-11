@@ -5,7 +5,8 @@ using Cozinhe_Comigo_API.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 
-//todo: Implementar melhor resposta para confirmação de cadastro!
+//TODO: Implementar melhor resposta para confirmação de cadastro.
+//TODO: implementar hash para melhor tratamento da senha.
 namespace Cozinhe_Comigo_API.Controllers
 {
     [Route("CozinheComigoAPI/[controller]")]
@@ -56,7 +57,6 @@ namespace Cozinhe_Comigo_API.Controllers
                 user.Biography,
                 user.FavoriteRecipesID
             });
-
         }
 
         [HttpPost("login")]
@@ -78,7 +78,7 @@ namespace Cozinhe_Comigo_API.Controllers
             {
                 return Unauthorized(new
                 {
-                     message = "Seu email ou sua senha está incorreta." 
+                    message = "Seu email ou sua senha está incorreta."
                 });
             }
 
@@ -88,7 +88,6 @@ namespace Cozinhe_Comigo_API.Controllers
                 user = new { user.id, user.Name, user.email }
             });
         }
-
 
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateUser(long id, [FromBody] User user)
