@@ -1,16 +1,20 @@
 using System.Runtime;
+using System.Text.RegularExpressions;
 
-namespace Receitas.Models {
+namespace Cozinhe_Comigo_API.Models
+{
     // Essa área será implementada em Python com FastAPI pelo Wallace
     public class User
     {
-        public int Id { get; set; }
+        public int id { get; set; }
         public string Name { get; set; }
-        public string Email { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string? ProfilePictureUrl { get; set; }
-        public string? Bio { get; set; }
-        public List<int> FavoriteRecipesIds { get; set; } = new List<int>();
+        public string email { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public string? ProfirePictureUrl { get; set; }
+        public string? Biography { get; set; }
+        public string? FavoriteRecipesID { get; set; }
+        public string passWord { get; set; }
 
         // Receitas são linkadas pelo UserId na classe Recipe
         // Avaliações são linkadas pelo UserId na classe Avaliation
@@ -25,8 +29,42 @@ namespace Receitas.Models {
         public User(string name, string email)
         {
             Name = name;
-            Email = email;
-            CreatedAt = DateTime.Now;
+            this.email = email;
+            CreatedAt = DateTime.UtcNow;
+
         }
+
+
+        public bool validateEmail(string email)
+        {
+            string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            Regex regex = new Regex(emailPattern);
+            if (regex.IsMatch(email))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool validateName(string name)
+        {
+            if (name.Length < 2)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public bool validatePassWord(string passWord)
+        {
+            if (passWord.Length <= 5)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
     }
 }

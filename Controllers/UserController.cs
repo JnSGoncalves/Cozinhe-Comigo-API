@@ -1,0 +1,118 @@
+using Microsoft.AspNetCore.Mvc;
+using Cozinhe_Comigo_API.Models;
+using Cozinhe_Comigo_API.Data;
+using Cozinhe_Comigo_API.DTOs;
+using Microsoft.EntityFrameworkCore;
+
+
+//todo: Implementar melhor resposta para confirmação de cadastro!
+namespace Cozinhe_Comigo_API.Controllers
+{
+    [Route("CozinheComigoAPI/[controller]")]
+    [ApiController]
+    public class UserController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+
+        public UserController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<User>> GetUser(long id)
+        {
+            var user = await _context.User.FindAsync(id);
+            if (user == null)
+                return NotFound();
+            return Ok(user);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<User>> InsertUser([FromBody] User user)
+        {
+            if (!user.validateEmail(user.email))
+                return ValidationProblem("E-mail inválido.");
+
+            if (!user.validateName(user.Name))
+                return ValidationProblem("O nome deve ter no mínimo 2 caracteres.");
+
+            if (!user.validatePassWord(user.passWord))
+            {
+                return ValidationProblem("A senha deve ter 6 ou mais caracteres!");
+            }
+
+
+            _context.User.Add(user);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUser), new { id = user.id }, new
+            {
+                user.id,
+                user.Name,
+                user.email,
+                user.CreatedAt,
+                user.ProfirePictureUrl,
+                user.Biography,
+                user.FavoriteRecipesID
+            });
+
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult> Login([FromBody] LoginRequest login)
+        {
+            if (string.IsNullOrEmpty(login.Email) || string.IsNullOrEmpty(login.PassWord))
+            {
+                return BadRequest("E-mail e senha são obrigatórios.");
+            }
+
+            var user = await _context.User.FirstOrDefaultAsync(u => u.email == login.Email);
+
+            if (user == null)
+            {
+                return Unauthorized("Usuário não encontrado.");
+            }
+
+            if (user.passWord != login.PassWord)
+            {
+                return Unauthorized(new
+                {
+                     message = "Seu email ou sua senha está incorreta." 
+                });
+            }
+
+            return Ok(new
+            {
+                message = "Login efetuado com sucesso!",
+                user = new { user.id, user.Name, user.email }
+            });
+        }
+
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateUser(long id, [FromBody] User user)
+        {
+            if (id != user.id)
+                return BadRequest();
+
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(user);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteUser(long id)
+        {
+            var user = await _context.User.FindAsync(id);
+            if (user == null)
+                return NotFound();
+
+            _context.User.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+    }
+}
