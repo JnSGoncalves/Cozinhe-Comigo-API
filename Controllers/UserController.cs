@@ -3,6 +3,7 @@ using Cozinhe_Comigo_API.Models;
 using Cozinhe_Comigo_API.Data;
 using Cozinhe_Comigo_API.DTOs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 
 //TODO: Implementar melhor resposta para confirmação de cadastro.
@@ -43,19 +44,30 @@ namespace Cozinhe_Comigo_API.Controllers
                 return ValidationProblem("A senha deve ter 6 ou mais caracteres!");
             }
 
+            var existingUser = await _context.User.FirstOrDefaultAsync
+            (u => u.email == user.email);
+            if (existingUser != null)
+                return Conflict(new { message = "Este e-mail já está cadastrado." });
+
+            var passwordHasher = new PasswordHasher<User>();
+            user.passWord = passwordHasher.HashPassword(user, user.passWord);
 
             _context.User.Add(user);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetUser), new { id = user.id }, new
             {
-                user.id,
-                user.Name,
-                user.email,
-                user.CreatedAt,
-                user.ProfirePictureUrl,
-                user.Biography,
-                user.FavoriteRecipesID
+                message = "Cadastro realizado com sucesso.",
+                user = new
+                {
+                    user.id,
+                    user.Name,
+                    user.email,
+                    user.CreatedAt,
+                    user.ProfirePictureUrl,
+                    user.Biography,
+                    user.FavoriteRecipesID
+                }
             });
         }
 
@@ -63,31 +75,27 @@ namespace Cozinhe_Comigo_API.Controllers
         public async Task<ActionResult> Login([FromBody] LoginRequest login)
         {
             if (string.IsNullOrEmpty(login.Email) || string.IsNullOrEmpty(login.PassWord))
-            {
-                return BadRequest("E-mail e senha são obrigatórios.");
-            }
+                return BadRequest(new { message = "E-mail e senha são obrigatórios." });
 
             var user = await _context.User.FirstOrDefaultAsync(u => u.email == login.Email);
-
             if (user == null)
-            {
-                return Unauthorized("Usuário não encontrado.");
-            }
+                return Unauthorized(new { message = "Usuário não encontrado." });
 
-            if (user.passWord != login.PassWord)
-            {
-                return Unauthorized(new
-                {
-                    message = "Seu email ou sua senha está incorreta."
-                });
-            }
+            var passwordHasher = new PasswordHasher<User>();
+            var result = passwordHasher.VerifyHashedPassword(user, user.passWord, login.PassWord);
+
+            if (result == PasswordVerificationResult.Failed)
+                return Unauthorized(new { 
+                    message = "Seu email ou sua senha está incorreta." 
+                    });
 
             return Ok(new
             {
-                message = "Login efetuado com sucesso!",
+                message = "Login efetuado com sucesso.",
                 user = new { user.id, user.Name, user.email }
             });
         }
+
 
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateUser(long id, [FromBody] User user)
