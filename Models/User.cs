@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
 namespace Cozinhe_Comigo_API.Models
@@ -47,6 +48,18 @@ namespace Cozinhe_Comigo_API.Models
 
         }
 
+        public static string GenerateLoginToken(int size = 64) {
+            // Gera um array de bytes aleatórios
+            byte[] tokenBytes = RandomNumberGenerator.GetBytes(size);
+
+            // Converte para string em Base64Url
+            string token = Convert.ToBase64String(tokenBytes)
+                .Replace("+", "-")
+                .Replace("/", "_")
+                .Replace("=", "");
+
+            return token;
+        }
 
         public bool validateEmail(string email)
         {
@@ -78,6 +91,5 @@ namespace Cozinhe_Comigo_API.Models
 
             return true;
         }
-
     }
 }

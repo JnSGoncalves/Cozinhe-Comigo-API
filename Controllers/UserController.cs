@@ -86,10 +86,35 @@ namespace Cozinhe_Comigo_API.Controllers
                     message = "Seu email ou sua senha está incorreta." 
                     });
 
+            var lastToken = await _context.Tokens.Where(t => t.UserId == user.id).FirstOrDefaultAsync();
+            Token token;
+
+            if (lastToken != null) {
+                if(lastToken.ExpiredTime > DateTime.UtcNow) {
+                    lastToken.LastLoginAt = DateTime.UtcNow;
+                    _context.Tokens.Update(lastToken);
+                    token = lastToken;
+                }
+                else{
+                    _context.Tokens.Remove(lastToken);
+
+                    string tokenCode = Models.User.GenerateLoginToken();
+                    token = new Token(user.id, tokenCode);
+                    _context.Tokens.Add(token); 
+                }
+            } else {
+                string tokenCode = Models.User.GenerateLoginToken();
+                token = new Token(user.id, tokenCode);
+                _context.Tokens.Add(token);
+            }
+
+            await _context.SaveChangesAsync();
+
             return Ok(new
             {
                 message = "Login efetuado com sucesso.",
-                user = new { user.id, user.Name, user.email }
+                user = new { user.id, user.Name, user.email },
+                token = token.TokenCode
             });
         }
 

@@ -15,7 +15,6 @@ namespace Cozinhe_Comigo_API.Models {
         [MaxLength(100)]
         [Column("title")]
         public string Title { get; set; }
-
         [Required]
         [Column("ingredients", TypeName = "text[]")]
         public List<string> Ingredients { get; set; }
