@@ -23,12 +23,13 @@ namespace Receitas.Models
         [Column("createdat")]
         public DateTime CreatedAt { get; set; } // Data e hora em que o comentário foi criado
        
-        public Avaliation(int recipeId, int userId, string content)
+        public Avaliation(int recipeId,int rating, int userId, string content)
         {
             RecipeId = recipeId;
             UserId = userId;
+            Rating = rating;
             Content = content;
-            CreatedAt = DateTime.Now;
+            CreatedAt = DateTime.UtcNow;
         }
     }
 }

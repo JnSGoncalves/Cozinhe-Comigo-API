@@ -1,21 +1,87 @@
 using Microsoft.AspNetCore.Mvc;
 using Receitas.Models;
+using Cozinhe_Comigo_API.Data;
+using Microsoft.EntityFrameworkCore;
+using Cozinhe_Comigo_API.Models;
+using Cozinhe_Comigo_API.DTOs;
+using Cozinhe_Comigo_API.DTOS;
+using System.Linq;
 
+
+ // TODO: Implementar método para criar Avaliação.
+ // TODO: Implementar filtros de buscas por receita.
 namespace Receitas.Controllers
 {
     [Route("CozinheComigoAPI/[controller]")]
     [ApiController]
     public class CommentsController : ControllerBase
     {
+        private readonly AppDbContext _context;
 
-        [HttpPost]
-        public async Task<ActionResult<IEnumerable<Avaliation>>> GetRecipeAvaliations(int recipeId)
+        public CommentsController(AppDbContext context)
         {
-            // var comments = await _context.Comments.Where(c => c.RecipeId == recipeId).ToListAsync();
-            var avaliation = new Avaliation(recipeId, 1, "Ótima receita! Muito fácil de fazer e deliciosa.");
-            return new List<Avaliation> { avaliation };
+            _context = context;
         }
 
-        // Todo: Implementar métodos para adicionar, editar e deletar avaliações
+        [HttpPost]
+        public async Task<ActionResult<ReturnDto<Avaliation>>> Post(
+            [FromBody] CreateAvaliationDto avaliationDto, 
+            [FromHeader] string requesterUserToken)
+        {
+            try {
+                var userIdToken = await _context.Tokens
+                    .Where(u => u.TokenCode == requesterUserToken)
+                    .Select(u => u.UserId)
+                    .FirstOrDefaultAsync();
+
+                if (userIdToken == 0) {
+                    return BadRequest(new ReturnDto<Recipe>(
+                        EInternStatusCode.BAD_REQUEST,
+                        "You need to be authenticated to create a new recipe.",
+                        null
+                    ));
+                }
+
+                if (avaliationDto.userId != userIdToken) { 
+                    return BadRequest(new ReturnDto<Recipe>(
+                        EInternStatusCode.BAD_REQUEST,
+                        @"You need to be authenticated with the same user for
+                         whom you are trying to create a new recipe.",
+                        null
+                    ));
+                }
+
+                var avaliation = new Avaliation(
+                    avaliationDto.recipeId,
+                    avaliationDto.rating,
+                    avaliationDto.userId,
+                    avaliationDto.content
+                );
+
+                _context.avaliations.Add(avaliation);
+                int result = await _context.SaveChangesAsync();
+
+                if (result == 0) {
+                    return StatusCode(500, new {
+                        StatusCode = EInternStatusCode.DB_ERROR,
+                        ReturnMessage = "Failed to save Avaliation. No rows affected."
+                    });
+                }
+
+                return Ok(new ReturnDto<Avaliation>(
+                    EInternStatusCode.OK,
+                    "Successfully created",
+                    avaliation
+                ));
+            } catch (Exception ex) {
+                Console.WriteLine("Internal Error");
+                Console.WriteLine(ex.Message);
+
+                return StatusCode(500, new {
+                    StatusCode = EInternStatusCode.INTERNAL_ERROR,
+                    ReturnMessage = "Internal server error while saving recipe.",
+                });
+            }
+        }
     }
 }
