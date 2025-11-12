@@ -14,7 +14,7 @@ namespace Cozinhe_Comigo_API.Filters
         // Todo: Talvez seja util adicionar filtros por ingredientes quando fazer a integração com o
         // modelo de IA
         // public List<string>? Ingredients { get; set; }
-        public List<int>? CategoriesId { get; set; }
+        public List<string>? Categories { get; set; }
         public int? UserId { get; set; } // Filtrar receitas por usuário específico
         // Todo: Caso seja falso, só retorna receitas privadas do usuário que fez a requisição
         public bool IsPublic { get; set; } = true;
