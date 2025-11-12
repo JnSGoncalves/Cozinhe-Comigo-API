@@ -32,6 +32,7 @@ namespace Cozinhe_Comigo_API.Controllers
             [FromHeader] string? requesterUserToken = null)
         {
             try {
+                /* Todo: Validação de usuário
                 var userIdRecipe = _context.User.Where(u => u.id == recipeDto.UserID).Select(u => u.id).FirstOrDefault();
                 var userIdToken = _context.Token
                     .Where(u => u.TokenCode.Equals(requesterUserToken))
@@ -45,6 +46,7 @@ namespace Cozinhe_Comigo_API.Controllers
                         null
                     ));
                 }
+                */
 
                 var recipe = new Recipe
                 {
