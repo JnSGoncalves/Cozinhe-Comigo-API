@@ -90,7 +90,7 @@ namespace Cozinhe_Comigo_API.Controllers
             Token token;
 
             if (lastToken != null) {
-                if(lastToken.ExpiredTime > DateTime.UtcNow) {
+                if(lastToken.ExpiredAt > DateTime.UtcNow) {
                     lastToken.LastLoginAt = DateTime.UtcNow;
                     _context.Tokens.Update(lastToken);
                     token = lastToken;

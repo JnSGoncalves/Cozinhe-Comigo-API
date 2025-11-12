@@ -9,7 +9,6 @@ using System.Linq;
 
 
 //TODO: anexar as receitas as suas determinadas categorias.
-//TODO: Endpoint para filto por categoria.
 //TODO: Endpoint(get) para buscar receitas por id.
 //TODO: Endpoint(get) para bucas n receitas.
 namespace Cozinhe_Comigo_API.Controllers
@@ -29,24 +28,29 @@ namespace Cozinhe_Comigo_API.Controllers
         [HttpPost]
         public async Task<ActionResult<ReturnDto<Recipe>>> Post(
             [FromBody] CreateRecipeDto recipeDto, 
-            [FromHeader] string? requesterUserToken = null)
+            [FromHeader] string requesterUserToken)
         {
             try {
-                /* Todo: Validação de usuário
-                var userIdRecipe = _context.User.Where(u => u.id == recipeDto.UserID).Select(u => u.id).FirstOrDefault();
-                var userIdToken = _context.Token
-                    .Where(u => u.TokenCode.Equals(requesterUserToken))
-                    .Select(u => u.id)
-                    .FirstOrDefault();
+                var userIdToken = await _context.Tokens
+                    .Where(u => u.TokenCode == requesterUserToken)
+                    .Select(u => u.UserId)
+                    .FirstOrDefaultAsync();
 
-                if (userIdRecipe != userIdToken) { 
+                if (userIdToken == 0) {
+                    return BadRequest(new ReturnDto<Recipe>(
+                        EInternStatusCode.BAD_REQUEST,
+                        "You need to be authenticated to create a new recipe.",
+                        null
+                    ));
+                }
+
+                if (recipeDto.UserID != userIdToken) { 
                     return BadRequest(new ReturnDto<Recipe>(
                         EInternStatusCode.BAD_REQUEST,
                         "You need to be authenticated with the same user for whom you are trying to create a new recipe.",
                         null
                     ));
                 }
-                */
 
                 var recipe = new Recipe
                 {
@@ -91,23 +95,105 @@ namespace Cozinhe_Comigo_API.Controllers
             }
         }
 
+        // GET: api/recipe
         [HttpGet]
-        public async Task<ActionResult<ReturnDto<List<Recipe>>>> Get(
+        public async Task<ActionResult> Get(
             [FromQuery] RecipeFilter filter, 
             [FromHeader] string? requesterUserToken = null
         ) {
-            if(requesterUserToken == null && filter.IsPublic == false){
-                return BadRequest(new ReturnDto<ReadRecipeDto>(
+            if(filter.PageSize <= 0) {
+                return BadRequest(new ReturnDto<List<Recipe>>(
                     EInternStatusCode.BAD_REQUEST,
-                    "To view a private recipe, you must authenticate yourself as the recipe's creator.",
+                    "Invalid page size.",
                     null
                 ));
             }
 
-            var query = _context.Recipes.AsQueryable();
+            if (filter.PageNumber <= 0) {
+                return BadRequest(new ReturnDto<List<Recipe>>(
+                    EInternStatusCode.BAD_REQUEST,
+                    "Invalid page number.",
+                    null
+                ));
+            }
+
+            if (filter.PageSize > 200) {
+                return BadRequest(new ReturnDto<List<Recipe>>(
+                    EInternStatusCode.BAD_REQUEST,
+                    "Page size too large. Maximum is 100.",
+                    null
+                ));
+            }
+
+            var query = _context.Recipes.AsNoTracking().AsQueryable();
+
+            //if (filter.IsPublic.HasValue && !filter.IsPublic.Value) {
+            //    if (string.IsNullOrEmpty(requesterUserToken)) {
+            //        return BadRequest(new ReturnDto<List<Recipe>>(
+            //            EInternStatusCode.BAD_REQUEST,
+            //            "To view a private recipe, you must authenticate yourself as the recipe's creator.",
+            //            null
+            //        ));
+            //    }
+
+            //var token = await _context.Tokens
+            //    .FirstOrDefaultAsync(t => t.TokenCode == requesterUserToken);
+
+            //if (token == null || token.ExpiredAt < DateTime.UtcNow) {
+            //    return BadRequest(new ReturnDto<List<Recipe>>(
+            //        EInternStatusCode.BAD_REQUEST,
+            //        "Invalid or expired authentication token.",
+            //        null
+            //    ));
+            //}
+
+            //if (!filter.UserId.HasValue || token.UserId != filter.UserId.Value) {
+            //    return BadRequest(new ReturnDto<List<Recipe>>(
+            //        EInternStatusCode.BAD_REQUEST,
+            //        "To view a private recipe, the UserId in filter must match the authenticated user.",
+            //        null
+            //    ));
+            //}
+
+            //    query = query.Where(r => r.UserID == token.UserId && !r.IsPublic);
+            //} else if ((filter.IsPublic.HasValue && filter.IsPublic.Value)) {
+            //    query = query.Where(r => r.IsPublic);
+            //}
+            Token? token = null;
+
+            // Se o token foi informado, tenta buscar e validar
+            if (!string.IsNullOrEmpty(requesterUserToken)) {
+                token = await _context.Tokens
+                    .FirstOrDefaultAsync(t => t.TokenCode == requesterUserToken);
+
+                if (token == null || token.ExpiredAt < DateTime.UtcNow) {
+                    return BadRequest(new ReturnDto<List<Recipe>>(
+                        EInternStatusCode.BAD_REQUEST,
+                        "Invalid or expired authentication token.",
+                        null
+                    ));
+                }
+
+                // Se o usuário filtrou receitas privadas, o ID precisa ser dele mesmo
+                if (!filter.UserId.HasValue || token.UserId != filter.UserId.Value) {
+                    return BadRequest(new ReturnDto<List<Recipe>>(
+                        EInternStatusCode.BAD_REQUEST,
+                        "To view a private recipe, the UserId in filter must match the authenticated user.",
+                        null
+                    ));
+                }
+            }
+
+            if (token == null) {
+                // Usuário não autenticado → só pode ver públicas
+                query = query.Where(r => r.IsPublic);
+            } else {
+                // Usuário autenticado → pode ver públicas e as próprias privadas
+                query = query.Where(r => r.IsPublic || r.UserID == token.UserId);
+            }
 
             if (!string.IsNullOrEmpty(filter.TitleSearch))
-                query = query.Where(r => r.Title.ToLower().Contains(filter.TitleSearch.ToLower()));
+                query = query.Where(r => EF.Functions.ILike(r.Title, $"%{filter.TitleSearch}%"));
 
             if (filter.MinPreparationTime.HasValue)
                 query = query.Where(r => r.PreparationTime >= filter.MinPreparationTime);
@@ -127,8 +213,6 @@ namespace Cozinhe_Comigo_API.Controllers
             if (filter.UserId.HasValue)
                 query = query.Where(r => r.UserID == filter.UserId);
 
-            query = query.Where(r => r.IsPublic == filter.IsPublic);
-
             if (filter.Categories != null && filter.Categories.Count > 0) {
                 query = query.Where(r =>
                     r.Categories.Any(c =>
@@ -138,42 +222,36 @@ namespace Cozinhe_Comigo_API.Controllers
 
             if (filter.SortBy.HasValue) {
                 query = filter.SortBy switch {
-                    SortByEnum.Title => filter.SortDescending
-                        ? query.OrderByDescending(r => r.Title)
-                        : query.OrderBy(r => r.Title),
-
-                    SortByEnum.PreparationTime => filter.SortDescending
-                        ? query.OrderByDescending(r => r.PreparationTime)
-                        : query.OrderBy(r => r.PreparationTime),
-
-                    SortByEnum.Portions => filter.SortDescending
-                        ? query.OrderByDescending(r => r.Portions)
-                        : query.OrderBy(r => r.Portions),
-
-                    SortByEnum.CreatedAt => filter.SortDescending
-                        ? query.OrderByDescending(r => r.CreatedAt)
-                        : query.OrderBy(r => r.CreatedAt),
-
-                    SortByEnum.AvaliationsCount => filter.SortDescending
-                        ? query.OrderByDescending(r => r.AvaliationsCount)
-                        : query.OrderBy(r => r.AvaliationsCount),
-
-                    SortByEnum.AverageRating => filter.SortDescending
-                        ? query.OrderByDescending(r => r.AverageRating)
-                        : query.OrderBy(r => r.AverageRating),
-
+                    SortByEnum.Title => filter.SortDescending ? query.OrderByDescending(r => r.Title) : query.OrderBy(r => r.Title),
+                    SortByEnum.PreparationTime => filter.SortDescending ? query.OrderByDescending(r => r.PreparationTime) : query.OrderBy(r => r.PreparationTime),
+                    SortByEnum.Portions => filter.SortDescending ? query.OrderByDescending(r => r.Portions) : query.OrderBy(r => r.Portions),
+                    SortByEnum.CreatedAt => filter.SortDescending ? query.OrderByDescending(r => r.CreatedAt) : query.OrderBy(r => r.CreatedAt),
+                    SortByEnum.AvaliationsCount => filter.SortDescending ? query.OrderByDescending(r => r.AvaliationsCount) : query.OrderBy(r => r.AvaliationsCount),
+                    SortByEnum.AverageRating => filter.SortDescending ? query.OrderByDescending(r => r.AverageRating) : query.OrderBy(r => r.AverageRating),
                     _ => query
                 };
             }
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)filter.PageSize);
+
+            query = query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize);
 
             if (filter.FullResult) {
                 var recipes = await query.ToListAsync();
 
                 return Ok(new ReturnDto<List<Recipe>>(
                     EInternStatusCode.OK,
-                    "Query executed",
+                    "Query executed successfully",
                     recipes
-                ));
+                ) {
+                    TotalItems = totalItems,
+                    PageNumber = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalPages = totalPages
+                });
             } else {
                 var recipes = await query
                 .Select(r => new ReadRecipeDto {
@@ -188,9 +266,14 @@ namespace Cozinhe_Comigo_API.Controllers
 
                 return Ok(new ReturnDto<List<ReadRecipeDto>>(
                     EInternStatusCode.OK,
-                    "Query executed",
+                    "Query executed successfully",
                     recipes
-                ));
+                ) {
+                    TotalItems = totalItems,
+                    PageNumber = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalPages = totalPages
+                });
             }
         }
     }

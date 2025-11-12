@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Cozinhe_Comigo_API.Models {
     [Table("recipes")]
     public class Recipe {
+        // Todo: Adicionar uma coluna de quantidade de chamadas por id, para ser usado no order by
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("id")]
@@ -30,7 +31,7 @@ namespace Cozinhe_Comigo_API.Models {
         [Column("portions")]
         public int? Portions { get; set; } // Quantas pessoas a receita serve
         [Column("createdat")]
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         [Column("avaliationscount")]
         public int AvaliationsCount { get; set; } = 0; // Número de avaliações recebidas
         [Column("averagerating")]

@@ -23,20 +23,20 @@ namespace Cozinhe_Comigo_API.Models {
         public DateTime LastLoginAt { 
             get => _lastLoginAt; 
             set{
-                ExpiredTime = DateTime.UtcNow.AddMinutes(60);
+                ExpiredAt = DateTime.UtcNow.AddMinutes(60);
                 _lastLoginAt = value;
             } 
         }
         [Required]
-        [Column("expiredtime")]
-        public DateTime ExpiredTime { get; set; }
+        [Column("expiredat")]
+        public DateTime ExpiredAt { get; set; }
 
         public Token(int userId, string tokenCode, string? deviceSpecs = null) {
             UserId = userId;
             TokenCode = tokenCode;
             DeviceSpecs = deviceSpecs;
             LastLoginAt = DateTime.UtcNow;
-            ExpiredTime = DateTime.UtcNow.AddMinutes(60);
+            ExpiredAt = DateTime.UtcNow.AddMinutes(60);
         }
     } 
 }
