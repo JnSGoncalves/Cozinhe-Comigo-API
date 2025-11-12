@@ -1,5 +1,5 @@
 ﻿namespace Cozinhe_Comigo_API.DTOs {
-    public class PagedResult<T> {
+    public class PageResult<T> {
         public IEnumerable<T> Items { get; set; } = new List<T>();
         public int TotalItems { get; set; }
         public int PageNumber { get; set; }
