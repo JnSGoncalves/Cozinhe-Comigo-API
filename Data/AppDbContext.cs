@@ -17,8 +17,8 @@ namespace Cozinhe_Comigo_API.Data {
             modelBuilder.HasDefaultSchema(schema);
         }
 
-        public DbSet<Recipe> Recipe { get; set; }
-        public DbSet<User> User { get; set; }
+        public DbSet<Recipe> Recipes { get; set; }
+        public DbSet<User> Users { get; set; }
 
     }
 }

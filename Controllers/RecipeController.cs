@@ -65,7 +65,7 @@ namespace Cozinhe_Comigo_API.Controllers
                     PreparationTime = recipeDto.PreparationTime
                 };
 
-                _context.Recipe.Add(recipe);
+                _context.Recipes.Add(recipe);
                 int result = await _context.SaveChangesAsync();
 
                 if (result == 0) {
@@ -104,7 +104,7 @@ namespace Cozinhe_Comigo_API.Controllers
                 ));
             }
 
-            var query = _context.Recipe.AsQueryable();
+            var query = _context.Recipes.AsQueryable();
 
             if (!string.IsNullOrEmpty(filter.TitleSearch))
                 query = query.Where(r => r.Title.ToLower().Contains(filter.TitleSearch.ToLower()));

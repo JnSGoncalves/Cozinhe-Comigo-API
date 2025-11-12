@@ -21,7 +21,7 @@ namespace Cozinhe_Comigo_API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(long id)
         {
-            var user = await _context.User.FindAsync(id);
+            var user = await _context.Users.FindAsync(id);
             if (user == null)
                 return NotFound();
             return Ok(user);
@@ -41,7 +41,7 @@ namespace Cozinhe_Comigo_API.Controllers
                 return ValidationProblem("A senha deve ter 6 ou mais caracteres!");
             }
 
-            var existingUser = await _context.User.FirstOrDefaultAsync
+            var existingUser = await _context.Users.FirstOrDefaultAsync
             (u => u.email == user.email);
             if (existingUser != null)
                 return Conflict(new { message = "Este e-mail já está cadastrado." });
@@ -49,7 +49,7 @@ namespace Cozinhe_Comigo_API.Controllers
             var passwordHasher = new PasswordHasher<User>();
             user.passWord = passwordHasher.HashPassword(user, user.passWord);
 
-            _context.User.Add(user);
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetUser), new { id = user.id }, new
@@ -74,7 +74,7 @@ namespace Cozinhe_Comigo_API.Controllers
             if (string.IsNullOrEmpty(login.Email) || string.IsNullOrEmpty(login.PassWord))
                 return BadRequest(new { message = "E-mail e senha são obrigatórios." });
 
-            var user = await _context.User.FirstOrDefaultAsync(u => u.email == login.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.email == login.Email);
             if (user == null)
                 return Unauthorized(new { message = "Usuário não encontrado." });
 
@@ -109,11 +109,11 @@ namespace Cozinhe_Comigo_API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteUser(long id)
         {
-            var user = await _context.User.FindAsync(id);
+            var user = await _context.Users.FindAsync(id);
             if (user == null)
                 return NotFound();
 
-            _context.User.Remove(user);
+            _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
             return NoContent();
