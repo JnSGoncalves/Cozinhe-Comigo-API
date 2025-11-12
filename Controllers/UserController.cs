@@ -5,6 +5,7 @@ using Cozinhe_Comigo_API.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
+//TODO: Melhorar resposta das apis.
 namespace Cozinhe_Comigo_API.Controllers
 {
     [Route("CozinheComigoAPI/[controller]")]
@@ -82,27 +83,33 @@ namespace Cozinhe_Comigo_API.Controllers
             var result = passwordHasher.VerifyHashedPassword(user, user.passWord, login.PassWord);
 
             if (result == PasswordVerificationResult.Failed)
-                return Unauthorized(new { 
-                    message = "Seu email ou sua senha está incorreta." 
-                    });
+                return Unauthorized(new
+                {
+                    message = "Seu email ou sua senha está incorreta."
+                });
 
             var lastToken = await _context.Tokens.Where(t => t.UserId == user.id).FirstOrDefaultAsync();
             Token token;
 
-            if (lastToken != null) {
-                if(lastToken.ExpiredAt > DateTime.UtcNow) {
+            if (lastToken != null)
+            {
+                if (lastToken.ExpiredAt > DateTime.UtcNow)
+                {
                     lastToken.LastLoginAt = DateTime.UtcNow;
                     _context.Tokens.Update(lastToken);
                     token = lastToken;
                 }
-                else{
+                else
+                {
                     _context.Tokens.Remove(lastToken);
 
                     string tokenCode = Models.User.GenerateLoginToken();
                     token = new Token(user.id, tokenCode);
-                    _context.Tokens.Add(token); 
+                    _context.Tokens.Add(token);
                 }
-            } else {
+            }
+            else
+            {
                 string tokenCode = Models.User.GenerateLoginToken();
                 token = new Token(user.id, tokenCode);
                 _context.Tokens.Add(token);
