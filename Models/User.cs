@@ -38,7 +38,7 @@ namespace Cozinhe_Comigo_API.Models
         // Armazenada no banco de dados e Recebida pelo Frontend criptografada e validada por outro serviço
         // sem passar pelo código
         // Poderia ser implemenado um token para manter a sessão do usuário
-
+        public User(){}
 
         public User(string name, string email)
         {

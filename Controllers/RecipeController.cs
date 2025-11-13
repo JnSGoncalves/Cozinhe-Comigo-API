@@ -7,10 +7,6 @@ using Cozinhe_Comigo_API.DTOs;
 using Cozinhe_Comigo_API.DTOS;
 using System.Linq;
 
-
-//TODO: anexar as receitas as suas determinadas categorias.
-//TODO: Endpoint(get) para buscar receitas por id.
-//TODO: Endpoint(get) para bucas n receitas.
 namespace Cozinhe_Comigo_API.Controllers
 {
     [Route("CozinheComigoAPI/[controller]")]
