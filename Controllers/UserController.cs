@@ -202,30 +202,5 @@ namespace Cozinhe_Comigo_API.Controllers
             });
         }
 
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateUser(long id, [FromBody] User user)
-        {
-            if (id != user.id)
-                return BadRequest();
-
-            _context.Entry(user).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return Ok(user);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteUser(long id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
     }
 }
