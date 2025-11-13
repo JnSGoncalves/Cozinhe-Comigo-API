@@ -4,7 +4,7 @@ using DotNetEnv;
 using Receitas.Models;
 
 
-// TODO: mudar "avaliation" para "Avaliation". Da erro caso eu tenta "Avaliation".
+// TODO: mudar "avaliation" para "Avaliation". Da erro caso eu tente "Avaliation".
 namespace Cozinhe_Comigo_API.Data
 {
     public class AppDbContext : DbContext
