@@ -4,7 +4,6 @@ obj/
 *.user
 *.log
 *.db
-.env
 .git
 .gitignore
 Dockerfile

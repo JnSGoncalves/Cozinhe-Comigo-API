@@ -13,4 +13,5 @@ COPY --from=build /app/out .
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "Cozinhe-Comigo-API.dll"]
 
-# TODO: Implementar variáveis de ambiente.
+# docker build -t cozinhe-comigo-api:local
+# docker run -d --name cozinhe-comigo-api --env-file .env -p 8080:8080 cozinhe-comigo-api:local
