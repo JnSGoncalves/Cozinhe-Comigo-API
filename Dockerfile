@@ -12,3 +12,5 @@ WORKDIR /app
 COPY --from=build /app/out .
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "Cozinhe-Comigo-API.dll"]
+
+# TODO: Implementar variáveis de ambiente.
