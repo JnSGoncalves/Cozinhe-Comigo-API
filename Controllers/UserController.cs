@@ -132,20 +132,37 @@ namespace Cozinhe_Comigo_API.Controllers
         public async Task<ActionResult> Login([FromBody] LoginRequest login)
         {
             if (string.IsNullOrEmpty(login.Email) || string.IsNullOrEmpty(login.PassWord))
-                return BadRequest(new { message = "E-mail e senha são obrigatórios." });
+            {
+                return BadRequest(new ReturnDto<User>(
+                        EInternStatusCode.BAD_REQUEST,
+                        "Email and password are required.",
+                        null
+                    ));;
+            }
+            ;
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.email == login.Email);
             if (user == null)
-                return Unauthorized(new { message = "Usuário não encontrado." });
+            {
+                return BadRequest(new ReturnDto<User>(
+                        EInternStatusCode.BAD_REQUEST,
+                        "User not found",
+                        null
+                    ));
+            }
 
             var passwordHasher = new PasswordHasher<User>();
-            var result = passwordHasher.VerifyHashedPassword(user, user.passWord, login.PassWord);
+            var result = passwordHasher.VerifyHashedPassword(user, 
+            user.passWord, login.PassWord);
 
             if (result == PasswordVerificationResult.Failed)
-                return Unauthorized(new
-                {
-                    message = "Seu email ou sua senha está incorreta."
-                });
+            {
+                return BadRequest(new ReturnDto<User>(
+                    EInternStatusCode.BAD_REQUEST,
+                    "Incorrect email or password",
+                    null
+                ));
+            }
 
             var lastToken = await _context.Tokens.Where(t => t.UserId == user.id).FirstOrDefaultAsync();
             Token token;
@@ -178,7 +195,8 @@ namespace Cozinhe_Comigo_API.Controllers
 
             return Ok(new
             {
-                message = "Login efetuado com sucesso.",
+                InternStatusCode = 0,
+                message = "Login successful.",
                 user = new { user.id, user.Name, user.email },
                 token = token.TokenCode
             });
