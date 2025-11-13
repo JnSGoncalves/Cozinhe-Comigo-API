@@ -52,6 +52,17 @@ namespace Receitas.Controllers
                     ));
                 }
 
+                bool recipeExists = await _context.Recipes
+                    .AnyAsync(r => r.Id == avaliationDto.recipeId);
+                if (!recipeExists)
+                {
+                    return NotFound(new ReturnDto<Recipe>(
+                        EInternStatusCode.BAD_REQUEST,
+                        $"Recipe with ID {avaliationDto.recipeId} not found.",
+                        null
+                    ));
+                }
+
                 var avaliation = new Avaliation(
                     avaliationDto.recipeId,
                     avaliationDto.rating,
