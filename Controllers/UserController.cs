@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Cozinhe_Comigo_API.Models;
 using Cozinhe_Comigo_API.Data;
 using Cozinhe_Comigo_API.DTOs;
+using Cozinhe_Comigo_API.DTOS;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
-//TODO: Melhorar resposta das apis.
 namespace Cozinhe_Comigo_API.Controllers
 {
     [Route("CozinheComigoAPI/[controller]")]
@@ -29,44 +29,103 @@ namespace Cozinhe_Comigo_API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<User>> InsertUser([FromBody] User user)
+        public async Task<ActionResult<User>> InsertUser([FromBody] UserDto userDto)
         {
-            if (!user.validateEmail(user.email))
-                return ValidationProblem("E-mail inválido.");
-
-            if (!user.validateName(user.Name))
-                return ValidationProblem("O nome deve ter no mínimo 2 caracteres.");
-
-            if (!user.validatePassWord(user.passWord))
+            try
             {
-                return ValidationProblem("A senha deve ter 6 ou mais caracteres!");
-            }
-
-            var existingUser = await _context.Users.FirstOrDefaultAsync
-            (u => u.email == user.email);
-            if (existingUser != null)
-                return Conflict(new { message = "Este e-mail já está cadastrado." });
-
-            var passwordHasher = new PasswordHasher<User>();
-            user.passWord = passwordHasher.HashPassword(user, user.passWord);
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetUser), new { id = user.id }, new
-            {
-                message = "Cadastro realizado com sucesso.",
-                user = new
+                var user = new User
                 {
-                    user.id,
-                    user.Name,
-                    user.email,
-                    user.CreatedAt,
-                    user.ProfirePictureUrl,
-                    user.Biography,
-                    user.FavoriteRecipesID
+                    Name = userDto.name,
+                    email = userDto.email,
+                    passWord = userDto.passWord,
+                    ProfirePictureUrl = userDto.profirePictureUrl,
+                    Biography = userDto.biography,
+                    FavoriteRecipesID = userDto.favoriteRecipesId
+                };
+
+
+
+                if (!user.validateEmail(user.email))
+                {
+                    return BadRequest(new ReturnDto<User>(
+                        EInternStatusCode.BAD_REQUEST,
+                        @"You need to be use a valid e-mail",
+                        null
+                    ));
                 }
-            });
+                ;
+
+                if (!user.validateName(user.Name))
+                {
+                    return BadRequest(new ReturnDto<User>(
+                        EInternStatusCode.BAD_REQUEST,
+                        @"The name must contain at least 2 characters.",
+                        null
+                    ));;
+                }
+
+                if (!user.validatePassWord(user.passWord))
+                {
+                    return BadRequest(new ReturnDto<User>(
+                        EInternStatusCode.BAD_REQUEST,
+                        @"The password must contain at least 6 characters.",
+                        null
+                    ));;
+                }
+
+                var existingUser = await _context.Users.FirstOrDefaultAsync
+                (u => u.email == user.email);
+                if (existingUser != null)
+                {
+                    return BadRequest(new ReturnDto<User>(
+                        EInternStatusCode.BAD_REQUEST,
+                        "The email is already registered.",
+                        null
+                    ));;
+                }
+
+                var passwordHasher = new PasswordHasher<User>();
+                user.passWord = passwordHasher.HashPassword(user, user.passWord);
+
+                _context.Users.Add(user);
+                int result = await _context.SaveChangesAsync();
+
+                if(result == 0)
+                {
+                    return StatusCode(500, new
+                    {
+                        StatusCode = EInternStatusCode.DB_ERROR,
+                        ReturnMessage = "Failed to save user. No rows affected."
+                    });
+                }
+
+                return CreatedAtAction(nameof(GetUser), new { id = user.id }, new
+                {
+                    InternStatusCode = 0,
+                    message = "Registration successful",
+                    user = new
+                    {
+                        user.id,
+                        user.Name,
+                        user.email,
+                        user.CreatedAt,
+                        user.ProfirePictureUrl,
+                        user.Biography,
+                        user.FavoriteRecipesID
+                    }
+                });
+                
+            } catch (Exception ex)
+            {
+                Console.WriteLine("Internal error");
+                Console.WriteLine(ex.Message);
+
+                return StatusCode(500, new
+                {
+                    StatusCode = EInternStatusCode.INTERNAL_ERROR,
+                    ReturnMessage = "Internal server error while saving user.",
+                });
+            }
         }
 
         [HttpPost("login")]

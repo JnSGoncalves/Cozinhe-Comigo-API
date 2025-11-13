@@ -8,9 +8,6 @@ using Cozinhe_Comigo_API.DTOS;
 using Cozinhe_Comigo_API.Filters;
 using System.Linq;
 
-
- // TODO: Implementar método para criar Avaliação.
- // TODO: Implementar filtros de buscas por receita.
 namespace Receitas.Controllers
 {
     [Route("CozinheComigoAPI/[controller]")]
@@ -40,7 +37,7 @@ namespace Receitas.Controllers
                 {
                     return BadRequest(new ReturnDto<Recipe>(
                         EInternStatusCode.BAD_REQUEST,
-                        "You need to be authenticated to create a new recipe.",
+                        "You need to be authenticated to create a new comments.",
                         null
                     ));
                 }
@@ -50,7 +47,7 @@ namespace Receitas.Controllers
                     return BadRequest(new ReturnDto<Recipe>(
                         EInternStatusCode.BAD_REQUEST,
                         @"You need to be authenticated with the same user for
-                         whom you are trying to create a new recipe.",
+                         whom you are trying to create a new comments.",
                         null
                     ));
                 }

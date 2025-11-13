@@ -11,7 +11,6 @@ namespace Cozinhe_Comigo_API.DTOS
         public int rating { get; set; }
         [Required]
         public int userId { get; set; }
-        [Required]
         public string content { get; set; }
     }
 }
