@@ -102,10 +102,13 @@ namespace Cozinhe_Comigo_API.Controllers
                 var recipe = await _context.Recipes.Where(r => r.Id == id).FirstOrDefaultAsync();
 
                 if (recipe != null) {
-                    return Ok(new ReturnDto<Recipe>(
+                    List<Recipe> receitas = new List<Recipe>();
+
+                    receitas.Add(recipe);
+                    return Ok(new ReturnDto<List<Recipe>>(
                         EInternStatusCode.OK,
                         "Query executed successfully",
-                        recipe
+                        receitas
                     ));
                 }
 
