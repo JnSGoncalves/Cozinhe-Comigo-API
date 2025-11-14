@@ -45,7 +45,6 @@ namespace Cozinhe_Comigo_API.Models
             Name = name;
             this.email = email;
             CreatedAt = DateTime.UtcNow;
-
         }
 
         public static string GenerateLoginToken(int size = 64) {

@@ -20,12 +20,21 @@ namespace Cozinhe_Comigo_API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(long id)
-        {
-            var user = await _context.Users.FindAsync(id);
+        public async Task<ActionResult<UserReturn>> GetUser(long id) {
+            var user = await _context.Users.Where(u => u.id == id).FirstOrDefaultAsync();
+
             if (user == null)
                 return NotFound();
-            return Ok(user);
+
+            return Ok(new UserReturn(){
+                id = user.id,
+                Name = user.Name,
+                email = user.email,
+                CreatedAt = user.CreatedAt,
+                ProfirePictureUrl = user.ProfirePictureUrl,
+                Biography = user.Biography,
+                FavoriteRecipesID = user.FavoriteRecipesID
+            });
         }
 
         [HttpPost]
