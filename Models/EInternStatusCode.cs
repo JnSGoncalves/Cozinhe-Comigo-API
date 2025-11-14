@@ -4,6 +4,7 @@
         DB_ERROR,
         INTERNAL_ERROR,
         BAD_REQUEST,
-        NOT_FOUND
+        NOT_FOUND,
+        UNAUTHORIZED
     }
 }

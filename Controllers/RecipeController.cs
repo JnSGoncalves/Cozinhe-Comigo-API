@@ -95,89 +95,52 @@ namespace Cozinhe_Comigo_API.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(
             int? id,
-            [FromQuery] RecipeFilter filter, 
+            [FromQuery] RecipeFilter filter,
             [FromHeader] string? requesterUserToken = null
         ) {
-            if (id.HasValue){
-                var recipe = await _context.Recipes.Where(r => r.Id == id && r.IsPublic == true).FirstOrDefaultAsync();
+            Token? token = null;
 
-                if (recipe != null) {
-                    List<Recipe> receitas = new List<Recipe>();
+            // Se token foi enviado → validar
+            if (!string.IsNullOrEmpty(requesterUserToken)) {
+                token = await _context.Tokens.FirstOrDefaultAsync(t => t.TokenCode == requesterUserToken);
 
-                    receitas.Add(recipe);
-                    return Ok(new ReturnDto<List<Recipe>>(
-                        EInternStatusCode.OK,
-                        "Query executed successfully",
-                        receitas
+                if (token == null || token.ExpiredAt < DateTime.UtcNow) {
+                    return BadRequest(new ReturnDto<List<Recipe>>(
+                        EInternStatusCode.BAD_REQUEST,
+                        "Invalid or expired authentication token.",
+                        null
                     ));
                 }
+            }
 
-                return Ok(new ReturnDto<Recipe>(
+            if (id.HasValue) {
+                var recipe = await _context.Recipes.FirstOrDefaultAsync(r => r.Id == id.Value);
+
+                if (recipe == null) {
+                    return Ok(new ReturnDto<Recipe>(
                         EInternStatusCode.NOT_FOUND,
                         "Recipe not found",
                         null
                     ));
-            }
+                }
 
-            if (filter.PageSize <= 0) {
-                return BadRequest(new ReturnDto<List<Recipe>>(
-                    EInternStatusCode.BAD_REQUEST,
-                    "Invalid page size.",
-                    null
+                // Se receita é privada → somente dono pode ver
+                if (!recipe.IsPublic) {
+                    if (token == null || token.UserId != recipe.UserID) {
+                        return BadRequest(new ReturnDto<Recipe>(
+                            EInternStatusCode.UNAUTHORIZED,
+                            "This recipe is private and can only be viewed by the creator.",
+                            null
+                        ));
+                    }
+                }
+
+                return Ok(new ReturnDto<Recipe>(
+                    EInternStatusCode.OK,
+                    "Query executed successfully",
+                    recipe
                 ));
             }
-
-            if (filter.PageNumber <= 0) {
-                return BadRequest(new ReturnDto<List<Recipe>>(
-                    EInternStatusCode.BAD_REQUEST,
-                    "Invalid page number.",
-                    null
-                ));
-            }
-
-            if (filter.PageSize > 200) {
-                return BadRequest(new ReturnDto<List<Recipe>>(
-                    EInternStatusCode.BAD_REQUEST,
-                    "Page size too large. Maximum is 100.",
-                    null
-                ));
-            }
-
-            var query = _context.Recipes.AsNoTracking().AsQueryable();
-
-            //if (filter.IsPublic.HasValue && !filter.IsPublic.Value) {
-            //    if (string.IsNullOrEmpty(requesterUserToken)) {
-            //        return BadRequest(new ReturnDto<List<Recipe>>(
-            //            EInternStatusCode.BAD_REQUEST,
-            //            "To view a private recipe, you must authenticate yourself as the recipe's creator.",
-            //            null
-            //        ));
-            //    }
-
-            //var token = await _context.Tokens
-            //    .FirstOrDefaultAsync(t => t.TokenCode == requesterUserToken);
-
-            //if (token == null || token.ExpiredAt < DateTime.UtcNow) {
-            //    return BadRequest(new ReturnDto<List<Recipe>>(
-            //        EInternStatusCode.BAD_REQUEST,
-            //        "Invalid or expired authentication token.",
-            //        null
-            //    ));
-            //}
-
-            //if (!filter.UserId.HasValue || token.UserId != filter.UserId.Value) {
-            //    return BadRequest(new ReturnDto<List<Recipe>>(
-            //        EInternStatusCode.BAD_REQUEST,
-            //        "To view a private recipe, the UserId in filter must match the authenticated user.",
-            //        null
-            //    ));
-            //}
-
-            //    query = query.Where(r => r.UserID == token.UserId && !r.IsPublic);
-            //} else if ((filter.IsPublic.HasValue && filter.IsPublic.Value)) {
-            //    query = query.Where(r => r.IsPublic);
-            //}
-            Token? token = null;
 
             // Se o token foi informado, tenta buscar e validar
             if (!string.IsNullOrEmpty(requesterUserToken)) {
@@ -201,6 +164,8 @@ namespace Cozinhe_Comigo_API.Controllers
                     ));
                 }
             }
+
+            var query = _context.Recipes.AsNoTracking().AsQueryable();
 
             if (token == null) {
                 // Usuário não autenticado → só pode ver públicas
