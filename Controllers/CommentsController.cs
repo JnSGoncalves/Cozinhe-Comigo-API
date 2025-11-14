@@ -35,7 +35,7 @@ namespace Receitas.Controllers
 
                 if (userIdToken == 0)
                 {
-                    return BadRequest(new ReturnDto<Recipe>(
+                    return BadRequest(new ReturnDto<Avaliation>(
                         EInternStatusCode.BAD_REQUEST,
                         "You need to be authenticated to create a new comments.",
                         null
@@ -44,7 +44,7 @@ namespace Receitas.Controllers
 
                 if (avaliationDto.userId != userIdToken)
                 {
-                    return BadRequest(new ReturnDto<Recipe>(
+                    return BadRequest(new ReturnDto<Avaliation>(
                         EInternStatusCode.BAD_REQUEST,
                         @"You need to be authenticated with the same user for
                          whom you are trying to create a new comments.",
@@ -96,7 +96,7 @@ namespace Receitas.Controllers
                 return StatusCode(500, new
                 {
                     StatusCode = EInternStatusCode.INTERNAL_ERROR,
-                    ReturnMessage = "Internal server error while saving recipe.",
+                    ReturnMessage = "Internal server error while saving Avaliation.",
                 });
             }
         }
