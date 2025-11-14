@@ -99,7 +99,7 @@ namespace Cozinhe_Comigo_API.Controllers
             [FromHeader] string? requesterUserToken = null
         ) {
             if (id.HasValue){
-                var recipe = await _context.Recipes.Where(r => r.Id == id).FirstOrDefaultAsync();
+                var recipe = await _context.Recipes.Where(r => r.Id == id && r.IsPublic == true).FirstOrDefaultAsync();
 
                 if (recipe != null) {
                     List<Recipe> receitas = new List<Recipe>();
