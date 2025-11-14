@@ -4,7 +4,7 @@ namespace Cozinhe_Comigo_API.Filters
 {
     public class RecipeFilter
     {
-        public string? RecipeId { get; set; }
+        // public int? Id { get; set; }
         public string? TitleSearch { get; set; }
         public int? MinPreparationTime { get; set; }
         public int? MaxPreparationTime { get; set; }

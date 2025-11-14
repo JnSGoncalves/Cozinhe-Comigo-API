@@ -94,10 +94,29 @@ namespace Cozinhe_Comigo_API.Controllers
         // GET: api/recipe
         [HttpGet]
         public async Task<ActionResult> Get(
+            int? id,
             [FromQuery] RecipeFilter filter, 
             [FromHeader] string? requesterUserToken = null
         ) {
-            if(filter.PageSize <= 0) {
+            if (id.HasValue){
+                var recipe = await _context.Recipes.Where(r => r.Id == id).FirstOrDefaultAsync();
+
+                if (recipe != null) {
+                    return Ok(new ReturnDto<Recipe>(
+                        EInternStatusCode.OK,
+                        "Query executed successfully",
+                        recipe
+                    ));
+                }
+
+                return Ok(new ReturnDto<Recipe>(
+                        EInternStatusCode.NOT_FOUND,
+                        "Recipe not found",
+                        null
+                    ));
+            }
+
+            if (filter.PageSize <= 0) {
                 return BadRequest(new ReturnDto<List<Recipe>>(
                     EInternStatusCode.BAD_REQUEST,
                     "Invalid page size.",
