@@ -142,10 +142,8 @@ namespace Cozinhe_Comigo_API.Controllers
                 ));
             }
 
-            // Se o token foi informado, tenta buscar e validar
             if (!string.IsNullOrEmpty(requesterUserToken)) {
-                token = await _context.Tokens
-                    .FirstOrDefaultAsync(t => t.TokenCode == requesterUserToken);
+                token = await _context.Tokens.FirstOrDefaultAsync(t => t.TokenCode == requesterUserToken);
 
                 if (token == null || token.ExpiredAt < DateTime.UtcNow) {
                     return BadRequest(new ReturnDto<List<Recipe>>(
@@ -154,25 +152,17 @@ namespace Cozinhe_Comigo_API.Controllers
                         null
                     ));
                 }
-
-                // Se o usuário filtrou receitas privadas, o ID precisa ser dele mesmo
-                if (!filter.UserId.HasValue || token.UserId != filter.UserId.Value) {
-                    return BadRequest(new ReturnDto<List<Recipe>>(
-                        EInternStatusCode.BAD_REQUEST,
-                        "To view a private recipe, the UserId in filter must match the authenticated user.",
-                        null
-                    ));
-                }
             }
 
             var query = _context.Recipes.AsNoTracking().AsQueryable();
 
             if (token == null) {
-                // Usuário não autenticado → só pode ver públicas
                 query = query.Where(r => r.IsPublic);
             } else {
-                // Usuário autenticado → pode ver públicas e as próprias privadas
-                query = query.Where(r => r.IsPublic || r.UserID == token.UserId);
+                query = query.Where(r =>
+                    r.IsPublic ||
+                    (r.UserID == token.UserId)
+                );
             }
 
             if (!string.IsNullOrEmpty(filter.TitleSearch))
